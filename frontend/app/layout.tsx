@@ -3,8 +3,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'CampusConnect AI — Discover. Participate. Make Campus Count.',
-  description: 'An AI-powered smart campus platform for discovering events, building community, and growing together.',
+  title: 'CampusConnect — Your campus, your community',
+  description: 'Discover workshops, competitions, cultural events, and opportunities happening across your campus.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -33,6 +33,8 @@ export const viewport: Viewport = {
   ],
 }
 
+import { AuthProvider } from '@/lib/auth-context'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -40,8 +42,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased">
-        {children}
+      <body className="antialiased bg-[#FAF9F6] text-[#20212B]">
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

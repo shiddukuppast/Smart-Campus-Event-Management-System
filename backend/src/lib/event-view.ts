@@ -15,6 +15,8 @@ export function eventView(event: EventDocument & { organizer?: unknown }) {
     endDate: event.endDate,
     registrationDeadline: event.registrationDeadline,
     capacity: event.capacity,
+    activeRegistrations: event.activeRegistrations,
+    availableCapacity: Math.max(event.capacity - event.activeRegistrations, 0),
     imageUrl: event.imageUrl,
     status: event.status,
     organizer: organizer

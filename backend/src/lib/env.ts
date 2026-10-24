@@ -8,12 +8,28 @@ const envSchema = z.object({
   FRONTEND_ORIGIN: z.string().url().optional(),
 });
 
+export class EnvironmentConfigurationError extends Error {
+  constructor(public readonly missingVariables: string[]) {
+    super("Required environment variables are missing or invalid");
+    this.name = "EnvironmentConfigurationError";
+  }
+}
+
 export function getEnv() {
-  return envSchema.parse({
+  const result = envSchema.safeParse({
     MONGODB_URI: process.env.MONGODB_URI,
     JWT_SECRET: process.env.JWT_SECRET,
     JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN,
     NODE_ENV: process.env.NODE_ENV,
     FRONTEND_ORIGIN: process.env.FRONTEND_ORIGIN,
   });
+  if (!result.success) {
+    const variables = new Set(
+      result.error.issues.map((issue) => issue.path[0]).filter((value): value is string => typeof value === "string"),
+    );
+    const missingVariables = [...variables];
+    console.error("Backend environment configuration is invalid", { variables: missingVariables });
+    throw new EnvironmentConfigurationError(missingVariables);
+  }
+  return result.data;
 }

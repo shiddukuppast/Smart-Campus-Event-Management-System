@@ -11,7 +11,7 @@ const eventSchema = new Schema(
     endDate: { type: Date, required: true },
     registrationDeadline: { type: Date, required: true },
     capacity: { type: Number, required: true, min: 1, validate: Number.isInteger },
-    activeRegistrations: { type: Number, required: true, default: 0, min: 0, immutable: true },
+    activeRegistrations: { type: Number, required: true, default: 0, min: 0 },
     imageUrl: { type: String, trim: true, maxlength: 2_000 },
     status: { type: String, enum: ["DRAFT", "PUBLISHED", "CANCELLED"], default: "DRAFT", index: true },
   },

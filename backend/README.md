@@ -14,11 +14,15 @@ Copy-Item .env.example .env.local
 
 Set `MONGODB_URI` to the Atlas connection string and set `JWT_SECRET` to a random value of at least 32 characters. Do not commit `.env.local`.
 
+Next.js loads `backend/.env`, `.env.local`, and other standard environment files when the backend process starts. This checkout currently uses the existing `backend/.env`; no backend `.env.local` is required. Restart the backend after changing environment variables. Keep whichever backend file contains the valid values private and never expose it through a `NEXT_PUBLIC_` variable.
+
+If requests return `503 Database temporarily unavailable`, inspect the backend terminal for a sanitized connection diagnostic. For MongoDB Atlas, verify that the cluster is running, the connection string is current, the database user/password are valid, and the current public IP is present in Atlas Network Access. Corporate VPNs, firewalls, and DNS filters can also block MongoDB SRV or port 27017 traffic.
+
 ```powershell
 npm run dev
 ```
 
-The API is available at `http://localhost:3000/api`. Verify it is running with `GET /api/events`; an empty database returns a successful empty list.
+The API is available at `http://localhost:3001/api`. Verify it is running with `GET /api/events`; an empty database returns a successful empty list.
 
 ## Authentication
 
@@ -91,7 +95,7 @@ Deleting an event removes its registrations after deleting the event. For maximu
 
 ## Frontend integration
 
-For a same-origin deployment, use `/api` as the API base URL. For a separate deployment, set the frontend API base URL to the backend origin and configure `FRONTEND_ORIGIN`; deploy both over HTTPS and use:
+For local development, the frontend defaults to a Next.js rewrite and uses `/api`, while the backend listens on port 3001. For a separate deployment or direct browser requests, set the frontend `NEXT_PUBLIC_API_URL` to the backend origin and configure `FRONTEND_ORIGIN` to the exact frontend origin. The backend returns credentialed CORS headers only for that configured origin. Deploy both over HTTPS and use:
 
 ```ts
 fetch(`${API_BASE_URL}/api/auth/me`, { credentials: "include" });

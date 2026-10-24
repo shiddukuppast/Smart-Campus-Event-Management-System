@@ -15,13 +15,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     if (!validObjectId(id)) return errorResponse("Invalid event id", 400);
     await connectToDatabase();
+    const existingEvent = await Event.findById(id).select("status registrationDeadline");
+    if (!existingEvent) return errorResponse("Event not found", 404);
+    if (existingEvent.status !== "PUBLISHED") return errorResponse("Event is not available for registration", 409);
+    if (existingEvent.registrationDeadline < new Date()) return errorResponse("Registration deadline has passed", 409);
     const event = await Event.findOneAndUpdate({
       _id: id,
       status: "PUBLISHED",
       registrationDeadline: { $gte: new Date() },
       $expr: { $lt: ["$activeRegistrations", "$capacity"] },
     }, { $inc: { activeRegistrations: 1 } }, { new: true });
-    if (!event) return errorResponse("Event is not available for registration", 404);
+    if (!event) return errorResponse("This event is at capacity", 409);
     const existing = await Registration.findOne({ event: id, participant: user._id, status: "REGISTERED" });
     if (existing) {
       await Event.updateOne({ _id: id, activeRegistrations: { $gt: 0 } }, { $inc: { activeRegistrations: -1 } });
@@ -35,7 +39,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
       await Event.updateOne({ _id: id, activeRegistrations: { $gt: 0 } }, { $inc: { activeRegistrations: -1 } });
       throw error;
     }
-    return success({ registration: { id: registration._id.toString(), event: id, status: registration.status } }, 201);
+    return success({
+      registration: { id: registration._id.toString(), event: id, status: registration.status },
+      capacity: {
+        registered: event.activeRegistrations,
+        total: event.capacity,
+        remaining: Math.max(event.capacity - event.activeRegistrations, 0),
+      },
+    }, 201);
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") return errorResponse("Participant authentication required", 401);
     if (error instanceof Error && error.name === "MongoServerError" && (error as { code?: number }).code === 11000) {
@@ -57,8 +68,20 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
       { new: true },
     );
     if (!registration) return errorResponse("Active registration not found", 404);
-    await Event.updateOne({ _id: id, activeRegistrations: { $gt: 0 } }, { $inc: { activeRegistrations: -1 } });
-    return success({ registration: { id: registration._id.toString(), event: id, status: registration.status } });
+    const event = await Event.findOneAndUpdate(
+      { _id: id, activeRegistrations: { $gt: 0 } },
+      { $inc: { activeRegistrations: -1 } },
+      { new: true },
+    ).select("capacity activeRegistrations");
+    if (!event) return errorResponse("Event capacity could not be updated", 500);
+    return success({
+      registration: { id: registration._id.toString(), event: id, status: registration.status },
+      capacity: {
+        registered: event.activeRegistrations,
+        total: event.capacity,
+        remaining: Math.max(event.capacity - event.activeRegistrations, 0),
+      },
+    });
   } catch (error) {
     if (error instanceof Error && error.message === "UNAUTHORIZED") return errorResponse("Participant authentication required", 401);
     return handleError(error);
