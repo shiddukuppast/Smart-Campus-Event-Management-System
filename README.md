@@ -293,39 +293,6 @@ flowchart TD
     RegColl --- MongoAtlas
 ```
 
-#### Concurrent Seat Reservation Sequence
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Participant as Student (Participant)
-    participant Client as Frontend Client
-    participant API as Backend Route (/api/events/:id/register)
-    participant DB as MongoDB Atlas
-
-    Participant->>Client: Clicks "Register for Event"
-    Client->>API: POST /api/events/:id/register (Cookie: sc_auth)
-    API->>API: Verify JWT & Assert Role == PARTICIPANT
-    API->>DB: findOneAndUpdate(capacity filter, $inc: { activeRegistrations: 1 })
-    alt Event Full or Deadline Passed
-        DB-->>API: null (No document updated)
-        API-->>Client: 409 Conflict ("This event is at capacity")
-        Client-->>Participant: Show "Fully Booked" error banner
-    else Seat Available
-        DB-->>API: Updated Event Document
-        API->>DB: Registration.create({ event, participant })
-        alt Already Registered (Duplicate Key)
-            DB-->>API: E11000 Duplicate Key Error
-            API->>DB: updateOne(activeRegistrations - 1) [Rollback]
-            API-->>Client: 409 Conflict ("Already registered")
-            Client-->>Participant: Show "Already Registered" alert
-        else Registration Successful
-            DB-->>API: Created Registration Record
-            API-->>Client: 201 Created (Registration Data + Capacity Snapshot)
-            Client-->>Participant: Show Success State & Update Seat Meter
-        end
-    end
-```
 
 ---
 
