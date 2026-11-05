@@ -381,8 +381,6 @@ Smart-Campus-Event-Management-System/
 
 ## 📸 Application Screenshots
 
-> [!NOTE]
-> The screenshots below illustrate the core interfaces of **CampusConnect**. To populate actual visual captures, refer to the [Screenshots Guide](screenshots/README.md).
 
 <div align="center">
 
@@ -406,7 +404,6 @@ Smart-Campus-Event-Management-System/
 +-----------------------------------------------------------------------------------+
 ```
 
-*(Place screenshot file at `screenshots/01-landing-page.png`)*
 
 ---
 
@@ -435,7 +432,6 @@ Smart-Campus-Event-Management-System/
 +-----------------------------------------------------------------------------------+
 ```
 
-*(Place screenshot file at `screenshots/04-student-dashboard.png`)*
 
 ---
 
@@ -459,7 +455,6 @@ Smart-Campus-Event-Management-System/
 +-----------------------------------------------------------------------------------+
 ```
 
-*(Place screenshot file at `screenshots/05-event-details.png`)*
 
 ---
 
@@ -483,7 +478,6 @@ Smart-Campus-Event-Management-System/
 +-----------------------------------------------------------------------------------+
 ```
 
-*(Place screenshot file at `screenshots/07-organizer-dashboard.png`)*
 
 </div>
 
